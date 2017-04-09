@@ -1,0 +1,17 @@
+{
+  "name": "eq-reporting",
+  "version": "1.0.0",
+  "description": "Reporting application for LDS Elders Quorums.",
+  "main": "server.js",
+  "author": "Hamish Macpherson <hamstu@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+  	"scrape": "node scraper.js"
+  },
+  "dependencies": {
+    "dotenv": "^4.0.0"
+  },
+  "devDependencies": {
+    "nightmare": "^2.10.0"
+  }
+}
