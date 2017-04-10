@@ -2,7 +2,7 @@
  * EQ Reporting
  * Scraper
  *
- * This file loads LDS.org and scrapes the required Home Teaching and Member data.
+ * This script loads LDS.org and scrapes the required Home Teaching and Member data.
  *
  */
 require('dotenv').config();
