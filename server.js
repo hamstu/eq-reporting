@@ -52,7 +52,7 @@ app.get('/test', wrap(function* (req, res) {
 
 co(function *() {
 	global.db = yield MongoClient.connect(process.env.MONGO_DB_URL);
-	app.listen(8000);
+	app.listen(process.env.PORT);
 }).catch((error) => {
 	console.log(error);
 	if (db) {
