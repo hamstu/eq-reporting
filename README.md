@@ -1,29 +1,32 @@
-## EQ Reporting
+## EQ Home Teaching Bot
 Automated Home Teaching Reports
 
-This is a simple Node / Express app for the purpose of collecting [home teaching](https://www.lds.org/topics/home-teaching?lang=eng&old=true) reports from your quorum members. It does this by sending and responding to **text messages sent with the [Twilio](http://twilio.com) API.**
+This is a simple bot for collecting [home teaching](https://www.lds.org/topics/home-teaching?lang=eng&old=true) reports from your quorum members. It does this by sending and responding to **text messages sent with the [Twilio](http://twilio.com) API.**
 
-**⚠ Warning this is still a work in progress and very unfinished!**
+The app itself is built with Node.js, Express, and MongoDB. We use Docker and Docker Compose to make it easy to get up and running anywhere.
 
 ---
 
-## You will need:
+## Requirements
+
+To get this running, here's what you'll need.
 
 - A [Twilio Account](http://twilio.com)
-	- You can use the free option, but they'll prepend text to your messages.
-	- Make a note of your Account SID and Auth Token on the Twilio console page, you'll need them later.
+	- You can use the free option, but they'll prepend a bit of placeholder text to your SMS messages.
+	- Make a note of your **Account SID** and **Auth Token** on the [Twilio Console](https://www.twilio.com/console), you'll need them later.
 	- Finally, set up a new **Messaging Service** under the **Programmable SMS** section. Note the `SID` of the service once it's created, you'll also need it later.
 - An [LDS Account](http://lds.org) with access rights to [Home Teaching data](http://lds.org/htvt/)
 	- E.g., You'll have to be in the Elders Quorum or have another leadership calling.
-- `node -v` >= 7
+- [Node](nodejs.org) version >= 6.8
 - [Yarn](https://yarnpkg.com/en/) or NPM
-- [`ngrok`](https://ngrok.com/)
-- (optional) [Docker for Mac](https://docs.docker.com/docker-for-mac/) or [Windows](https://docs.docker.com/docker-for-windows/); to pull a MongoDB image and run it locally.
-	- Alternatively you can install MongoDB right onto your machine.
+- [`ngrok`](https://ngrok.com/) for forwarding Twilio API requests to your local machine while testing
+- [Docker](https://docker.com) for running the app
+	- [Docker for Mac](https://docs.docker.com/docker-for-mac/)
+	- [Docker for Windows](https://docs.docker.com/docker-for-windows/)
 
 ---
 
-## Setup instructions
+## Setup Instructions
 
 First, clone the repository down and jump inside:
 
@@ -32,7 +35,7 @@ $ git clone git@github.com:hamstu/eq-reporting.git
 $ cd eq-reporting
 ```
 
-Install the dependencies:
+Now we'll install the local dependencies:
 
 ```bash
 $ yarn
@@ -44,57 +47,85 @@ Or if you're using `npm` instead:
 $ npm install
 ```
 
-Then, open `example.env` in the project's folder, and add your details:
+Now open the `example.env` file in the project's root folder.
+
+Update the fields to match the ones you noted earlier.
+You can leave the `MONGO_*` and `NODE_*` variables alone, the defaults should be fine.
 
 ```bash
-TWILIO_ACCOUNT_SID=...
-TWILIO_AUTH_TOKEN=...
-TWILIO_MESSAGING_SERVICE_ID=...
-LDS_ACCOUNT_USERNAME=YOURUSERNAME
-LDS_ACCOUNT_PASSWORD=YOURPASSWORD
+TWILIO_ACCOUNT_SID=123321441241941819409414
+TWILIO_AUTH_TOKEN=47812fe12fe18fd118118d1fd
+TWILIO_MESSAGING_SERVICE_ID=abcd123
+LDS_ACCOUNT_USERNAME=MyUserName
+LDS_ACCOUNT_PASSWORD=password
 MONGO_HOST=mongodb://mongo
 MONGO_PORT=27017
-MONGO_DB=eqreporting2
+MONGO_DB=eqreporting
 NODE_PORT=8000
 ```
 
-Then rename the file to `.env`. (`.env` is already in the `.gitignore` and so will not be commited to any repository.)
+Rename the file to `.env`. (`.env` is already in the `.gitignore` and so will not be commited to any repository.)
 
-Now start the MongoDB container if you're choosing to do it the Docker way.
+### Scrape Data
 
-```bash
-$ docker pull mongo
-$ docker run --name mongo -d -p 127.0.0.1:27017:27017 mongo
-```
-
-If you're not running MongoDB with Docker, then ensure it's running on your machine on port `27017`.
-
-Now we'll scrape the data we need from [LDS.org](http://lds.org) (ward directory and Home Teaching assignments).
+Before we can use the app, we need to scrape the necessary member and companionship data from LDS.org. We run this command on your local system – not inside the Docker container like the commands you'll see later – because the scraping process usues an invisible browser to simulate an actual login to your LDS account.
 
 ```bash
 $ npm run scrape
 ```
 
-And now let's import all that lovely scraped data into MongoDB:
+If it completes with no errors you should now have two files – `companionship.json` and `members.json` – in the `scraped` directory.
+
+> Note: You'll have to run the `scrape` command anytime the companionship or member data changes on LDS.org (e.g., you change a home teaching route or assignment.)
+
+
+### Start The App
+
+Let's start everything up with `docker-compose`.
 
 ```bash
-$ npm run import
+$ docker-compose up -d
 ```
 
-Now with that done you're ready to start the express server!
+If that worked you should see the app and database containers running with `docker-compose ps`.
 
 ```bash
-$ npm run serve
+ $ docker-compose ps
+       Name                     Command             State            Ports
+------------------------------------------------------------------------------------
+eqreporting_mongo_1   docker-entrypoint.sh mongod   Up      0.0.0.0:27017->27017/tcp
+eqreporting_web_1     npm run serve                 Up      0.0.0.0:8000->8000/tcp
 ```
 
-This should start `nodemon`, which will watch your files and restart the server if anything changes.
+### Import Scraped Data
 
-Now let's actually do something with this server. To test it out you'll want to make it publically available (i.e., to the internet). One of the easiest ways to do this is with [`ngrok`](https://ngrok.com/).
+With the database runnning inside the Docker container, we can now import the data we scraped earlier.
+
+```bash
+$ docker-compose exec web npm run import
+```
+
+You'll see something like this:
+
+```bash
+> eq-reporting@1.0.0 import /app
+> node importer.js
+
+John Smith +15552225454
+Jane Doe +15552225454
+[...]
+```
+
+Now we've got our server running and all the necessary data imported!
+
+### Send and Receive a Message
+
+Now let's actually do something with this bot! 🤖 To test it out you'll want to make it publically available (i.e., to the internet). We _could_ just deploy it to a server pretty that supports Docker, but an even quicker way to test is with [`ngrok`](https://ngrok.com/).
 
 Install `ngrok`, and then run this command in a separate console window, so that the express server is still running.
 
 ```bash
-$ ngrok http <PORT>   # replace <PORT> here with the PORT in your `.env` file
+$ ngrok http <PORT>   # replace <PORT> here with the NODE_PORT in your `.env` file
 ```
 
 You should see some output that includes:
@@ -103,15 +134,28 @@ You should see some output that includes:
 Forwarding                    http://6f5cd49f.ngrok.io -> localhost:8000
 ```
 
-That URL is available to anyone now and will point directly to your local server! (Cool, eh?)
+That URL is available to anyone now and will point directly to the app/server running on your computer! (Cool, eh?)
 
-Now copy the ngrok URL `http://6f5cd49f.ngrok.io` (yours will be different) and paste it into your Twilio Messaging Service's _Inbound and Outbound Settings_ sections as follows:
+Now copy the ngrok URL `http://6f5cd49f.ngrok.io` (yours will be different) and paste it into your Twilio Messaging Service's **Inbound and Outbound Settings** sections as follows:
 
 	Request URL:         http://6f5cd49f.ngrok.io/receive
 	Status Callback URL: http://6f5cd49f.ngrok.io/status
 
-Save the Messaging Service.
+Save the Messaging Service once you've done that.
 
-Now send a text message to your Messaging Service's number. If all works well, it should hit the server, look you up in the ward directory, and reply with a simple response!
+⭐️ Now send a text message to your Messaging Service's number. If all works well, it should hit the server, look you up your phone number in the ward directory, and reply with a simple response! Try asking for your Home Teaching route by texting the message `route` to the bot.
 
-**⚠ As mentioned, this is still very much a work in progress. The actual reporting doesn't work yet, more updates coming soon.**
+### Troubleshooting
+
+If you're not getting a text message in response, it might help to check the log output from the server.
+
+```bash
+$ docker-compose logs -f web
+```
+
+Running that command will give you a live feed of any logs from the server, and will let you know if there are any errors occuring.
+
+### Deploying to Production
+
+Coming soon.
+
