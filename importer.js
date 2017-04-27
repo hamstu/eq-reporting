@@ -18,11 +18,18 @@ const moment = require("moment");
 var db;
 
 co(function*() {
-	db = yield MongoClient.connect(process.env.MONGO_DB_URL);
-	yield db.collection("members").dropIndexes();
-	yield db.collection("members").drop();
-	yield db.collection("companionships").dropIndexes();
-	yield db.collection("companionships").drop();
+	db = yield MongoClient.connect(
+		`${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}`
+	);
+
+	if (yield collectionExists('members')) {
+		yield db.collection("members").dropIndexes();
+		yield db.collection("members").drop();
+	}
+	if (yield collectionExists('companionships')) {
+		yield db.collection("companionships").dropIndexes();
+		yield db.collection("companionships").drop();
+	}
 
 	importMembers();
 	importCompanionships();
@@ -30,8 +37,13 @@ co(function*() {
 
 	db.close();
 }).catch(err => {
-	console.log("Error connecting to database.", err);
+	console.error("Database error!", err);
 });
+
+async function collectionExists(name) {
+	const collections = await db.listCollections().toArray();
+	return collections.some((collection) => collection.name === name);
+}
 
 const importMembers = () => {
 	for (let family of members.families) {

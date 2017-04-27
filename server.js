@@ -65,10 +65,10 @@ app.get(
 
 async function start() {
 	try {
-		global.db = await MongoClient.connect(process.env.MONGO_DB_URL);
-		app.listen(process.env.PORT);
+		global.db = await MongoClient.connect(`${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}`);
+		app.listen(process.env.NODE_PORT);
 	} catch (err) {
-		console.log(error);
+		console.error(err);
 		if (db) {
 			db.close();
 		}

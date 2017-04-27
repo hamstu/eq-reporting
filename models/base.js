@@ -92,7 +92,7 @@ class Base {
 	}
 
 	static findOne(query, options = {}) {
-		return this.find(query, { ...options, limit: -1 });
+		return this.find(query, Object.assign(options, { limit: -1 }));
 	}
 
 	static findOneById(id) {

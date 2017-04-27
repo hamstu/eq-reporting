@@ -52,8 +52,10 @@ TWILIO_AUTH_TOKEN=...
 TWILIO_MESSAGING_SERVICE_ID=...
 LDS_ACCOUNT_USERNAME=YOURUSERNAME
 LDS_ACCOUNT_PASSWORD=YOURPASSWORD
-MONGO_DB_URL=mongodb://localhost:27017/eqreporting
-PORT=8080
+MONGO_HOST=mongodb://mongo
+MONGO_PORT=27017
+MONGO_DB=eqreporting2
+NODE_PORT=8000
 ```
 
 Then rename the file to `.env`. (`.env` is already in the `.gitignore` and so will not be commited to any repository.)
