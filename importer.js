@@ -61,12 +61,13 @@ const importMembers = () => {
 				individual.dateCreated = new Date();
 				individual.dateUpdated = new Date();
 				individual.birthdate = moment(individual.birthdate).toDate();
+				individual.spouseName = (individual.isHeadOfHouse && spouse) ? spouse.givenName1 : null;
 
 				let individualPhone = normalizePhone(individual.phone);
 				individual.phone = individualPhone
 					? individualPhone
 					: familyPhone;
-				console.log(individual.givenName1, familyPhone);
+				console.log('Adding', individual.formattedName, individual.phone);
 
 				/* Ensure Id fields are converted to Integers */
 				for (let key of Object.keys(individual)) {

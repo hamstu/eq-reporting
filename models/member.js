@@ -55,11 +55,27 @@ class Member extends Base {
 		return this.attributes.givenName1.split(" ")[0];
 	}
 
+	get fullName() {
+		return `${this.firstName} ${this.attributes.surname}`;
+	}
+
+	get spouseFirstName() {
+		return this.attributes.spouseName ? this.attributes.spouseName.split(" ")[0] : "";
+	}
+
 	get routeName() {
-		if (this.attributes.hasOthersInHouse) {
-			return this.attributes.surname + " Family";
+		return this.getRouteName();
+	}
+
+	getRouteName(formal = true) {
+		if (this.attributes.spouseName) {
+			return formal
+				? `${this.attributes.surname}, ${this.firstName} and ${this.spouseFirstName}`
+				: `${this.firstName} and ${this.spouseFirstName} ${this.attributes.surname}`;
 		}
-		return this.attributes.formattedName;
+		return formal
+			? this.attributes.formattedName
+			: `${this.firstName} ${this.attributes.surname}`;
 	}
 
 	get routeAddress() {
@@ -70,18 +86,37 @@ class Member extends Base {
 		return this.attributes.phone ? this.attributes.phone : "<No Phone>";
 	}
 
-	getLastOutboundMessageType() {
+	getLastOutboundMessage() {
+		const that = this;
 		return co(function*() {
 			const lastMessageNotNone = yield Message.findOne(
-				{ source: "outbound", type: { $ne: messageTypes.TYPE_NONE } },
+				{ source: "outbound", type: { $ne: messageTypes.TYPE_NONE }, toIndividualId: that.attributes.individualId },
 				{ sort: { dateCreated: -1 } }
 			);
-			if (lastMessageNotNone) {
-				return lastMessageNotNone.type;
-			} else {
-				return messageTypes.TYPE_NONE;
-			}
+			return lastMessageNotNone;
 		});
+	}
+
+	getLastReport() {
+		const that = this;
+		return co(function*() {
+			const lastReport = yield Report.findOne(
+				{ sentToTeacherIds: that.attributes.individualId },
+				{ sort: { dateCreated: -1 } }
+			);
+			return lastReport;
+		});
+	}
+
+	toAPI() {
+		let attributes = super.toAPI();
+		return co(
+			function*() {
+				attributes.visits = this.cachedRelations.visits ? this.cachedRelations.visits : [];
+				attributes.routeName = this.routeName;
+				return attributes;
+			}.bind(this)
+		);
 	}
 
 	static findOneByPhone(phone) {
@@ -98,3 +133,4 @@ module.exports = Member;
 
 const Companionship = require("./companionship");
 const Message = require("./message");
+const Report = require("./report");

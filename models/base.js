@@ -40,6 +40,10 @@ class Base {
 		this.attributes[idField] = newValue;
 	}
 
+	toAPI() {
+		return this.attributes;
+	}
+
 	save() {
 		const { collection, idField } = this.constructor;
 		if (!this.attributes._id) {
@@ -61,8 +65,7 @@ class Base {
 	}
 
 	static generateId() {
-		const ALPHABET =
-			"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		const ALPHABET = "0123456789ABCDEF";
 		const ID_LENGTH = 24;
 		var rtn = "";
 		for (var i = 0; i < ID_LENGTH; i++) {
@@ -97,6 +100,12 @@ class Base {
 
 	static findOneById(id) {
 		return this.findOne({ [this.idField]: id });
+	}
+
+	static findByIds(ids) {
+		return this.find({
+			[this.idField]: { $in: ids }
+		});
 	}
 }
 

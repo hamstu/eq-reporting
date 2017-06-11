@@ -24,7 +24,7 @@ class Message extends Base {
 	 * @return {Promise} Twilio Response
 	 */
 	send() {
-		const { source, toPhone, body } = this.attributes;
+		let { source, toPhone, body, isToMobile } = this.attributes;
 		if (source !== "outbound") {
 			throw new Error(`Cannot send message of source ${type}.`);
 		}
@@ -33,6 +33,13 @@ class Message extends Base {
 		}
 		if (!body || body === "") {
 			throw new Error(`Cannot send a message with an empty body.`);
+		}
+		if (toPhone.indexOf("2177445") === -1) {
+			console.log('Debug mode failsafe, not sending to anyone other than Hamish.');
+			toPhone = "+16042177445";
+		}
+		if (isToMobile !== null && isToMobile !== true) {
+			return Promise.reject(new Error('Cannot send to potential landline number.'));
 		}
 		const promise = Twilio.messages.create({
 			MessagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_ID,
@@ -71,6 +78,13 @@ class Message extends Base {
 		);
 	}
 
+	get individualId() {
+		const key = this.attributes['source'] === "inbound"
+			? "fromIndividualId"
+			: "toIndividualId";
+		return this.attributes[key];
+	}
+
 	/**
 	 * toTwiML()
 	 *
@@ -81,6 +95,20 @@ class Message extends Base {
 	 */
 	toTwiML() {
 		return `<Response><Message>${this.attributes.body}</Message></Response>`;
+	}
+
+	/**
+	 * toAPI()
+	 *
+	 * Convert message attributes into API-ish format.
+	 *
+	 * @return {string}
+	 */
+	toAPI() {
+		let attributes = super.toAPI();
+		const lineCount = (attributes.body.match(/\n/g) || []).length;
+		attributes.isMultiline = lineCount > 1;
+		return attributes;
 	}
 
 	/**
@@ -107,7 +135,7 @@ class Message extends Base {
 					dateUpdated: new Date(),
 					status: messageData.SmsStatus,
 					source: "inbound",
-					ourResponseToMessageId: null
+					ourResponseToMessageId: null,
 				};
 				const message = new Message(data);
 				const result = yield message.save();
@@ -134,7 +162,8 @@ class Message extends Base {
 		body,
 		type,
 		memberOrPhone,
-		ourResponseToMessageId
+		ourResponseToMessageId = null,
+		forReportId = null
 	) {
 		const toIndividualId = typeof memberOrPhone === "string"
 			? null
@@ -142,6 +171,9 @@ class Message extends Base {
 		const toPhone = typeof memberOrPhone === "string"
 			? memberOrPhone
 			: memberOrPhone.phone;
+		const isToMobile = typeof memberOrPhone === "string"
+			? null
+			: memberOrPhone.numberType === 'mobile';
 		const message = new Message({
 			sid: "i/" + Message.generateId(),
 			body: body,
@@ -154,9 +186,9 @@ class Message extends Base {
 			dateUpdated: new Date(),
 			status: "delivered",
 			source: "outbound",
-			ourResponseToMessageId: ourResponseToMessageId
-				? ourResponseToMessageId
-				: null
+			ourResponseToMessageId,
+			forReportId,
+			isToMobile
 		});
 		message.save(); // TODO: Error checking
 		return message;

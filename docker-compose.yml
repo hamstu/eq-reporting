@@ -6,9 +6,21 @@ services:
       - .:/app
     ports:
       - "${NODE_PORT}:${NODE_PORT}"
+      - "9229:9229"
     links:
       - mongo
+    environment:
+      - NODE_ENV=local
   mongo:
     image: mongo:latest
     ports:
       - "${MONGO_PORT}:${MONGO_PORT}"
+  mongoadmin:
+    image: mongo-express:latest
+    ports:
+      - "${MONGO_ADMIN_PORT}:${MONGO_ADMIN_PORT}"
+    links:
+      - mongo
+    environment:
+      - ME_CONFIG_BASICAUTH_USERNAME=${MONGO_ADMIN_USER}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGO_ADMIN_PASSWORD}

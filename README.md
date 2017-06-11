@@ -62,6 +62,8 @@ MONGO_HOST=mongodb://mongo
 MONGO_PORT=27017
 MONGO_DB=eqreporting
 NODE_PORT=8000
+ADMIN_USER=admin
+ADMIN_PASSWORD=password
 ```
 
 Rename the file to `.env`. (`.env` is already in the `.gitignore` and so will not be commited to any repository.)

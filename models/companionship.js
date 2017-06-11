@@ -16,6 +16,14 @@ class Companionship extends Base {
 		});
 	}
 
+	getSeniorCompanion() {
+		return Member.findOneById(this.teacherIndividualIds[0]);
+	}
+
+	getJuniorCompanion() {
+		return Member.findOneById(this.teacherIndividualIds[1]);
+	}
+
 	getAssignments() {
 		return Member.find({
 			[Member.idField]: { $in: this.assignmentIndividualIds }
@@ -74,6 +82,31 @@ class Companionship extends Base {
 					ret.push(family);
 				}
 				return ret;
+			}.bind(this)
+		);
+	}
+
+	toAPI() {
+		let attributes = super.toAPI();
+		return co(
+			function*() {
+				let assignments = yield this.getAssignmentsWithVisits();
+				for (let idx in assignments) {
+					assignments[idx] = yield assignments[idx].toAPI();
+				}
+				attributes.assignments = assignments;
+
+				let teachers = yield this.getTeachers();
+				for (let idx in teachers) {
+					teachers[idx] = yield teachers[idx].toAPI();
+				}
+				teachers.sort((a,b) => {
+					return this.teacherIndividualIds.indexOf(a.individualId)
+						< this.teacherIndividualIds.indexOf(b.individualId) ? -1 : 1;
+				});
+				attributes.teachers = teachers;
+
+				return attributes;
 			}.bind(this)
 		);
 	}

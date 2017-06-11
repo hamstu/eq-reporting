@@ -1,0 +1,37 @@
+<h2>Companionships</h2>
+
+<div class="companionships-container">
+{{#each companionships}}
+	<div class="companionship">
+		<h3>{{teachers.0.formattedName}} / {{teachers.1.formattedName}}</h3>
+		<ul class="assignments">
+			{{#each assignments}}
+				<li class="assignment">
+					<div class="assignment__name">
+						{{routeName}}
+					</div>
+					<div class="assignment__visits">
+						{{renderVisits 4 visits}}
+					</div>
+				</li>
+			{{/each}}
+		</ul>
+		<div class="companionship__actions">
+			{{#each teachers}}
+				<a class="button" href="/admin/companionship/{{../id}}/send-report?to={{individualId}}">Request report from {{formattedName}}</a>
+			{{/each}}
+			<a class="button" href="/admin/companionship/{{id}}/send-report">Request report from both</a>
+		</div>
+	</div>
+{{/each}}
+</div>
+
+<script
+	src="https://code.jquery.com/jquery-3.2.1.min.js"
+	integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+	crossorigin="anonymous">
+</script>
+
+<script>
+
+</script>
