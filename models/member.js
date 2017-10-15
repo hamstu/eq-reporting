@@ -1,6 +1,5 @@
 const Base = require("./base");
 const messageTypes = require("./messageTypes");
-const co = require("co");
 
 /**
  * EQ Reporting
@@ -25,13 +24,9 @@ class Member extends Base {
 		);
 	}
 
-	getHomeTeachees() {
-		return co(
-			function*() {
-				const companionship = yield this.getCompanionship();
-				return companionship.getAssignments();
-			}.bind(this)
-		);
+	async getHomeTeachees() {
+		const companionship = await this.getCompanionship();
+		return companionship.getAssignments();
 	}
 
 	getAssignedCompanionship() {
@@ -40,15 +35,11 @@ class Member extends Base {
 		);
 	}
 
-	getHomeTeachers() {
-		return co(
-			function*() {
-				const assignedCompanionship = yield this.getAssignedCompanionship();
-				return assignedCompanionship
-					? assignedCompanionship.getTeachers()
-					: null;
-			}.bind(this)
-		);
+	async getHomeTeachers() {
+		const assignedCompanionship = await this.getAssignedCompanionship();
+		return assignedCompanionship
+			? assignedCompanionship.getTeachers()
+			: null;
 	}
 
 	get firstName() {
@@ -86,37 +77,32 @@ class Member extends Base {
 		return this.attributes.phone ? this.attributes.phone : "<No Phone>";
 	}
 
-	getLastOutboundMessage() {
-		const that = this;
-		return co(function*() {
-			const lastMessageNotNone = yield Message.findOne(
-				{ source: "outbound", type: { $ne: messageTypes.TYPE_NONE }, toIndividualId: that.attributes.individualId },
-				{ sort: { dateCreated: -1 } }
-			);
-			return lastMessageNotNone;
-		});
-	}
-
-	getLastReport() {
-		const that = this;
-		return co(function*() {
-			const lastReport = yield Report.findOne(
-				{ sentToTeacherIds: that.attributes.individualId },
-				{ sort: { dateCreated: -1 } }
-			);
-			return lastReport;
-		});
-	}
-
-	toAPI() {
-		let attributes = super.toAPI();
-		return co(
-			function*() {
-				attributes.visits = this.cachedRelations.visits ? this.cachedRelations.visits : [];
-				attributes.routeName = this.routeName;
-				return attributes;
-			}.bind(this)
+	async getLastOutboundMessage() {
+		const lastMessageNotNone = await Message.findOne(
+			{
+				source: "outbound",
+				type: { $ne: messageTypes.TYPE_NONE },
+				toIndividualId: this.attributes.individualId
+			},
+			{ sort: { dateCreated: -1 } }
 		);
+		return lastMessageNotNone;
+	}
+
+	async getLastReport() {
+		const lastReport = await Report.findOne(
+			{ sentToTeacherIds: this.attributes.individualId },
+			{ sort: { dateCreated: -1 } }
+		);
+		return lastReport;
+	}
+
+	async toAPI() {
+		let attributes = super.toAPI();
+		attributes.visits = this.cachedRelations.visits ? this.cachedRelations.visits : [];
+		attributes.routeName = this.routeName;
+		attributes.firstName = this.firstName;
+		return attributes;
 	}
 
 	static findOneByPhone(phone) {

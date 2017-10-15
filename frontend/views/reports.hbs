@@ -1,0 +1,34 @@
+<h2>Reports</h2>
+
+<div class="reports-container">
+	{{#each reports}}
+		<pre class="report">
+<b>Report ID:</b> {{_id}}
+<b>Created:</b> {{formatDate dateCreated "LLLL z"}}
+<b>For:</b> {{formatMonth month}} {{year}}
+
+<b>Companionship:</b>
+{{#each teachers}}
+- {{formattedName}}
+{{/each}}
+
+<b>Assignments:</b>
+{{#each assignments}}
+- {{routeName}}
+{{/each}}
+
+{{#each teachers}}
+<div class="report-box"><b>Responses from {{formattedName}}:</b>
+{{#if wasSentReport}}{{else}}{{firstName}} has not been sent a report request text message.{{/if}}
+{{#each reports}}
+{{formatReportType type}}: {{body}}
+<span class="report-date">Response received {{formatDate date "LLLL"}}</span>
+
+{{/each}}
+</div>
+{{/each}}
+
+
+		</pre>
+	{{/each}}
+</div>

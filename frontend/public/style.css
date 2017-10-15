@@ -73,3 +73,20 @@ a {
 		background: #4CAF50;
 		box-shadow: 0 0 0 2px #4CAF50;
 	}
+
+.report {
+	border: 2px solid #000;
+	padding: 20px;
+
+}
+
+.report-box {
+	border-top: 1px solid #000;
+	margin-top: 20px;
+	padding-top: 10px;
+}
+
+.report-date {
+	font-size: 12px;
+	color: #888;
+}

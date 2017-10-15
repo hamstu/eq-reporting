@@ -3,7 +3,7 @@ require("dotenv").config();
 const Long = require("mongodb").Long;
 const Base = require("./base");
 const messageTypes = require("./messageTypes");
-const co = require("co");
+
 const Twilio = require("twilio")(
 	process.env.TWILIO_ACCOUNT_SID,
 	process.env.TWILIO_AUTH_TOKEN
@@ -39,7 +39,7 @@ class Message extends Base {
 			toPhone = "+16042177445";
 		}
 		if (isToMobile !== null && isToMobile !== true) {
-			return Promise.reject(new Error('Cannot send to potential landline number.'));
+			throw new Error('Cannot send to potential landline number.');
 		}
 		const promise = Twilio.messages.create({
 			MessagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_ID,
@@ -60,22 +60,18 @@ class Message extends Base {
 	 *
 	 * @return Promise -> Member
 	 */
-	getMember() {
-		return co(
-			function*() {
-				if (this.cachedRelations.member) {
-					return this.cachedRelations.member;
-				}
-				const { source } = this.attributes;
-				const key = source === "inbound"
-					? "fromIndividualId"
-					: "toIndividualId";
-				this.cachedRelations.member = yield Member.findOneById(
-					Number(this.attributes[key])
-				);
-				return this.cachedRelations.member;
-			}.bind(this)
+	async getMember() {
+		if (this.cachedRelations.member) {
+			return this.cachedRelations.member;
+		}
+		const { source } = this.attributes;
+		const key = source === "inbound"
+			? "fromIndividualId"
+			: "toIndividualId";
+		this.cachedRelations.member = await Member.findOneById(
+			Number(this.attributes[key])
 		);
+		return this.cachedRelations.member;
 	}
 
 	get individualId() {
@@ -119,30 +115,26 @@ class Message extends Base {
 	 * @param  {object} messageData
 	 * @return {Promise => Message}  A Promise for the Message object.
 	 */
-	static createFromInbound(messageData) {
-		return co(
-			function*() {
-				const member = yield Member.findOneByPhone(messageData.From);
-				const data = {
-					sid: messageData.MessageSid,
-					body: messageData.Body,
-					type: messageTypes.TYPE_INBOUND,
-					fromIndividualId: member ? Long(member.id) : null,
-					fromPhone: messageData.From,
-					toIndividualId: null,
-					toPhone: null,
-					dateCreated: new Date(),
-					dateUpdated: new Date(),
-					status: messageData.SmsStatus,
-					source: "inbound",
-					ourResponseToMessageId: null,
-				};
-				const message = new Message(data);
-				const result = yield message.save();
-				message.cachedRelations.member = member;
-				return message;
-			}.bind(this)
-		);
+	static async createFromInbound(messageData) {
+		const member = await Member.findOneByPhone(messageData.From);
+		const data = {
+			sid: messageData.MessageSid,
+			body: messageData.Body,
+			type: messageTypes.TYPE_INBOUND,
+			fromIndividualId: member ? Long(member.id) : null,
+			fromPhone: messageData.From,
+			toIndividualId: null,
+			toPhone: null,
+			dateCreated: new Date(),
+			dateUpdated: new Date(),
+			status: messageData.SmsStatus,
+			source: "inbound",
+			ourResponseToMessageId: null,
+		};
+		const message = new Message(data);
+		const result = await message.save();
+		message.cachedRelations.member = member;
+		return message;
 	}
 
 	/**

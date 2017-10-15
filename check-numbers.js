@@ -2,7 +2,6 @@ require("dotenv").config();
 
 const Mongo = require("mongodb");
 const MongoClient = Mongo.MongoClient;
-const co = require("co");
 
 const Member = require("./models/member");
 const Companionship = require("./models/companionship");

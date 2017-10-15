@@ -10,35 +10,11 @@ require("dotenv").config();
 
 const MongoClient = require("mongodb").MongoClient;
 const Long = require("mongodb").Long;
-const co = require("co");
 const members = require("./scraped/members.json");
 const companionships = require("./scraped/companionships.json");
 const moment = require("moment");
 
-var db;
-
-co(function*() {
-	db = yield MongoClient.connect(
-		`${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}`
-	);
-
-	if (yield collectionExists('members')) {
-		yield db.collection("members").dropIndexes();
-		yield db.collection("members").drop();
-	}
-	if (yield collectionExists('companionships')) {
-		yield db.collection("companionships").dropIndexes();
-		yield db.collection("companionships").drop();
-	}
-
-	importMembers();
-	importCompanionships();
-	createIndexes();
-
-	db.close();
-}).catch(err => {
-	console.error("Database error!", err);
-});
+let db;
 
 async function collectionExists(name) {
 	const collections = await db.listCollections().toArray();
@@ -126,3 +102,26 @@ const insertDocuments = (collection, documents) => {
 	var collection = db.collection(collection);
 	collection.insertMany(documents);
 };
+
+async function start() {
+	db = await MongoClient.connect(
+		`${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DB}`
+	);
+
+	if (await collectionExists('members')) {
+		await db.collection("members").dropIndexes();
+		await db.collection("members").drop();
+	}
+	if (await collectionExists('companionships')) {
+		await db.collection("companionships").dropIndexes();
+		await db.collection("companionships").drop();
+	}
+
+	importMembers();
+	importCompanionships();
+	createIndexes();
+
+	db.close();
+}
+
+start();

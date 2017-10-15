@@ -120,6 +120,20 @@ Jane Doe +15552225454
 
 Now we've got our server running and all the necessary data imported!
 
+### Validating numbers
+
+Since not all members will have cell numbers, you can run the `check-numbers.js` script to validate the numbers as cell phones with Twilio's API. This does cost a small amount per number, so if you'd prefer to do it manually that's also an option.
+
+#### Automated
+
+```bash
+$ docker-compose exec web npm run check-numbers
+```
+
+#### Manually
+
+For now you'll have to manually edit the MongoDB database to set the `numberType` field for each member to be `'mobile'`. Soon I'll have a bulk way to do this, and eventually I'll add a way to ignore this check entirely and send text messages regardless.
+
 ### Send and Receive a Message
 
 Now let's actually do something with this bot! 🤖 To test it out you'll want to make it publically available (i.e., to the internet). We _could_ just deploy it to a server pretty that supports Docker, but an even quicker way to test is with [`ngrok`](https://ngrok.com/).

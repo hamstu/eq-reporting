@@ -6,10 +6,10 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const basicAuth = require('express-basic-auth');
 const hbs = require('hbs');
-const moment = require('moment');
 
 const SMSController = require("./lib/smsController");
 const AdminController = require("./lib/adminController");
+const { registerHelpers } = require('./lib/templateHelpers')
 
 const app = express();
 
@@ -19,42 +19,9 @@ app.use(bodyParser.json());
 app.set('view engine', 'hbs');
 app.set('views', __dirname + '/frontend/views');
 app.use(express.static(__dirname + '/frontend/public'));
-hbs.registerHelper('nl2br', function(options) {
-  var nl2br = (options.fn(this) + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1' + '<br />' + '$2');
-	return new hbs.SafeString(nl2br);
-});
-hbs.registerHelper("debug", function(optionalValue) {
-    console.log("Current Context");
-    console.log("====================");
-    console.log(this);
-    if (optionalValue) {
-        console.log("Value");
-        console.log("====================");
-        console.log(optionalValue);
-    }
-});
-hbs.registerHelper("renderVisits", (num, visits) => {
-	var rendered = "";
-	var visitsToShow = visits.slice(visits.length - Number(num), visits.length);
-	var lastYear = null;
-	for (visit of visitsToShow) {
-		let date = moment().month(visit.month-1).year(visit.year);
-		if (lastYear === null || visit.year !== lastYear) {
-			lastYear = visit.year;
-			visitYear = `<span class="visit-year">${visit.year}</span>`;
-		} else {
-			visitYear = '';
-		}
-		let month = date.format("MMM");
-		let visitedClass = visit.visited
-			? 'visited'
-			: visit.visited === null ? 'not-reported' : 'not-visited';
-		rendered += `
-			${visitYear} <span class="visit">${month} <span class="visit-pip visit-pip--${visitedClass}"></span></span>
-		`;
-	}
-	return new hbs.SafeString(rendered);
-});
+
+// HBS Helpers
+registerHelpers(hbs);
 
 // SMS Controller
 app.post("/sms/receive", SMSController.receive);
@@ -74,6 +41,7 @@ app.get("/admin", requireAuth, AdminController.index);
 app.get("/admin/companionships", requireAuth, AdminController.companionships);
 app.get("/admin/companionship/:companionshipId/send-report",
 	AdminController.sendCompanionshipReport);
+app.get("/admin/reports", requireAuth, AdminController.reports);
 
 // Ping/pong
 app.get("/ping", (_, res) => res.send('pong'));
