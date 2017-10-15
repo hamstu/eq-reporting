@@ -34,10 +34,10 @@ class Message extends Base {
 		if (!body || body === "") {
 			throw new Error(`Cannot send a message with an empty body.`);
 		}
-		if (toPhone.indexOf("2177445") === -1) {
+		/*if (toPhone.indexOf("2177445") === -1) {
 			console.log('Debug mode failsafe, not sending to anyone other than Hamish.');
 			toPhone = "+16042177445";
-		}
+		}*/
 		if (isToMobile !== null && isToMobile !== true) {
 			throw new Error('Cannot send to potential landline number.');
 		}
