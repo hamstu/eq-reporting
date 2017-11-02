@@ -19,7 +19,8 @@
 
 {{#each teachers}}
 <div class="report-box"><b>Responses from {{formattedName}}:</b>
-{{#if wasSentReport}}{{else}}{{firstName}} has not been sent a report request text message.{{/if}}
+{{#if wasSentReport}}{{else}}{{firstName}} has not been sent a report request text message.
+<a class="button" href="/admin/companionship/{{companionshipId}}/send-report?to={{individualId}}">Request report from {{firstName}}</a>{{/if}}
 {{#each reports}}
 {{formatReportType type}}: {{body}}
 <span class="report-date">Response received {{formatDate date "LLLL"}}</span>

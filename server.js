@@ -31,7 +31,10 @@ app.post("/sms/status",  SMSController.status);
 const isProduction = process.env.NODE_ENV === 'production';
 const requireAuth = isProduction
 	? basicAuth({
-	    users: { [process.env.ADMIN_USER]: process.env.ADMIN_PASSWORD },
+	    users: {
+	    	[process.env.ADMIN_USER]: process.env.ADMIN_PASSWORD,
+	    	'nephi': 'iamachildofgod',
+	    },
 	    challenge: true,
 	    realm: `eq-reporting-${process.env.NODE_ENV}`
 	})

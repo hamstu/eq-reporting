@@ -58,6 +58,8 @@ class Report extends Base {
 					${homeTeachEmoji} It looks like you Home Teach ${families.length} families: ${nameList}. ${companionDetails}
 
 					${questionEmoji} Were you able to contact or visit with any of these families in the month of ${month}?
+
+					👉 Reply with "Yes", "No", or "please call" if you'd like a member of the EQ Presidency to call you.
 				`,
 				messageTypes.TYPE_OUTBOUND_HT_REPORT_1,
 				teacher,
@@ -118,7 +120,11 @@ class Report extends Base {
 		this.save();
 
 		// Notify when the report is done...
-		const finalReportMessageTypes = [messageTypes.REPORT_FAMILY_NEEDS, messageTypes.REPORT_CHALLENGES];
+		const finalReportMessageTypes = [
+			messageTypes.REPORT_FAMILY_NEEDS,
+			messageTypes.REPORT_CHALLENGES,
+			messageTypes.REPORT_REQUESTED_CALL
+		];
 		if (finalReportMessageTypes.includes(responseType)) {
 
 			const reportText = this.attributes.reports.map(report => {
@@ -196,7 +202,9 @@ class Report extends Base {
 
 		let teachers = await this.getTeachers();
 		for (let idx in teachers) {
+			const companionship = await teachers[idx].getCompanionship();
 			teachers[idx] = await teachers[idx].toAPI();
+			teachers[idx].companionshipId = companionship.id;
 			let reportsFromTeacher = this.attributes.reports.filter(r => r.teacherIndividualId == teachers[idx].individualId);
 			teachers[idx].reports = reportsFromTeacher;
 			teachers[idx].wasSentReport = this.attributes.sentToTeacherIds.includes(teachers[idx].individualId);
