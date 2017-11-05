@@ -3,3 +3,5 @@ node_modules
 .env
 scraped
 scripts
+dump
+backup-and-restore.sh

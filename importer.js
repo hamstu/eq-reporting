@@ -10,8 +10,8 @@ require("dotenv").config();
 
 const MongoClient = require("mongodb").MongoClient;
 const Long = require("mongodb").Long;
-const members = require("./scraped/members.json");
-const companionships = require("./scraped/companionships.json");
+const members = require("./scraper/scraped/members.json");
+const companionships = require("./scraper/scraped/companionships.json");
 const moment = require("moment");
 
 let db;
