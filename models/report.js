@@ -155,19 +155,21 @@ class Report extends Base {
 			notify({
 				subject: `${member.fullName} has submitted his home teaching report for ${month}`,
 				text: commonTags.stripIndents`
-					Hi there,
-
-					${member.fullName} has just completed his home teaching report.
-
-					Companionship:
-					${teachersText}
-
-					Assignments:
-					${assignmentsText}
-
-					This is his report:
+					${member.fullName} has just completed his home teaching report for ${month}.
 
 					${reportText}
+
+					---
+
+					👥 Companionship:
+					${teachersText}
+
+					🏡 Assignments:
+					${assignmentsText}
+
+					---
+
+					This message was sent by Omni, the Home Teaching bot! 🤖
 				`
 			});
 			this.attributes.status = 'completed';

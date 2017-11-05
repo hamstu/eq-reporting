@@ -12,7 +12,8 @@
     "check-numbers": "node check-numbers.js",
     "serve": "./node_modules/.bin/nodemon --inspect=0.0.0.0:9229 server.js",
     "backup": "./backup-and-restore.sh backup eqreporting2",
-    "restore": "./backup-and-restore.sh restore eqreporting2"
+    "restore": "./backup-and-restore.sh restore eqreporting2",
+    "deploy": "./scripts/deploy.sh"
   },
   "dependencies": {
     "body-parser": "^1.17.1",
